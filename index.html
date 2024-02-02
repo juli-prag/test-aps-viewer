@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css"
+    />
+    <title>Document</title>
+    <style>
+      #viewer {
+        position: absolute;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="viewer"></div>
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+    <script>
+      const APS_CLIENT_ID = "sKJFdfKesqUE0NJ6pcJKGWkILKo0Wlu1";
+      const APS_CLIENT_SECRET = "1bgaDXgqhzU7IihJ";
+
+      let ACCESS_TOKEN = "";
+      const MODEL_URN =
+        "dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c2tqZmRma2VzcXVlMG5qNnBjamtnd2tpbGtvMHdsdTEtYmFzaWMtYXBwL1Jvb2ZTYW1wbGVGaWxlLnJ2dA";
+
+      fetch("https://developer.api.autodesk.com/authentication/v2/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `client_id=${APS_CLIENT_ID}&client_secret=${APS_CLIENT_SECRET}&grant_type=client_credentials&scope=data:read`,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          ACCESS_TOKEN = data.access_token;
+
+          if (!ACCESS_TOKEN || !MODEL_URN) {
+            document.getElementById("viewer").innerHTML =
+              "Please provide <code>ACCESS_TOKEN</code> and <code>MODEL_URN</code> values.";
+            //exit;
+          }
+
+          Autodesk.Viewing.Initializer(
+            { accessToken: ACCESS_TOKEN },
+            function () {
+              const viewer = new Autodesk.Viewing.GuiViewer3D(
+                document.getElementById("viewer")
+              );
+              viewer.start();
+              Autodesk.Viewing.Document.load(
+                "urn:" + MODEL_URN,
+                function (doc) {
+                  viewer.loadDocumentNode(
+                    doc,
+                    doc.getRoot().getDefaultGeometry()
+                  );
+                },
+                function (code, message, errors) {
+                  console.error(code, message, errors);
+                }
+              );
+            }
+          );
+        })
+        .catch((error) => console.error(error));
+    </script>
+  </body>
+</html>
